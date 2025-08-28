@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Bill - Devil's Discount</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            position: relative;
+        }
+        .bill-container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #d32f2f;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #d32f2f;
+            margin: 0;
+        }
+        .bill-details {
+            margin: 20px 0;
+        }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .label {
+            font-weight: bold;
+            color: #555;
+        }
+        .value {
+            color: #333;
+        }
+        .total-section {
+            background-color: #fff3e0;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 30px 0;
+            border-left: 5px solid #ff9800;
+        }
+        .original-amount {
+            font-size: 1.5em;
+            color: #666;
+            text-decoration: line-through;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .discount-badge {
+            background-color: #d32f2f;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+            margin: 15px 0;
+            display: inline-block;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .no-discount {
+            background-color: #666;
+        }
+        .final-amount {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #2e7d32;
+            text-align: center;
+            margin-top: 15px;
+        }
+        .discount-section {
+            background-color: #e8f5e8;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 5px solid #4caf50;
+        }
+        .back-btn {
+            background-color: #666;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .back-btn:hover {
+            background-color: #555;
+        }
+        .reset-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: #d32f2f;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+        }
+        .reset-btn:hover {
+            background-color: #b71c1c;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        .refresh-hint {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 5px solid #2196f3;
+            text-align: center;
+            color: #1565c0;
+        }
+    </style>
+</head>
+<body>
+    <div class="bill-container">
+        <div class="header">
+            <h1>🔥 Devil's Discount Analysis</h1>
+            <p>Medical Bill Summary</p>
+        </div>
+        
+        <div class="bill-details">
+            <div class="row">
+                <span class="label">Patient Name:</span>
+                <span class="value">{{ patient_name }}</span>
+            </div>
+            <div class="row">
+                <span class="label">Patient ID:</span>
+                <span class="value">{{ patient_id }}</span>
+            </div>
+            <div class="row">
+                <span class="label">Date of Service:</span>
+                <span class="value">{{ date_of_service }}</span>
+            </div>
+            <div class="row">
+                <span class="label">Healthcare Provider:</span>
+                <span class="value">{{ provider }}</span>
+            </div>
+        </div>
+        
+        <div class="total-section">
+            <h3 style="margin-top: 0; text-align: center;">Bill Breakdown</h3>
+            
+            {% if has_discount %}
+                <div class="original-amount">Original: {{ original_amount }}</div>
+                <div class="discount-badge">
+                    🎉 {{ discount_percentage }}% DEVIL'S DISCOUNT! Save {{ discount_amount }}
+                </div>
+                <div class="final-amount">{{ final_amount }}</div>
+            {% else %}
+                <div class="discount-badge no-discount">
+                    😈 No Discount Available - Full Price
+                </div>
+                <div class="final-amount" style="color: #d32f2f;">{{ original_amount }}</div>
+            {% endif %}
+        </div>
+        
+        {% if has_discount %}
+            <div class="refresh-hint">
+                <strong>⚠️ Limited Time Offer!</strong><br>
+                This discount decreases by 10% each time you refresh the page. Act fast!
+            </div>
+        {% endif %}
+        
+        <div class="discount-section">
+            <h4 style="margin-top: 0; color: #2e7d32;">🎯 Devil's Discount Service</h4>
+            <p style="margin-bottom: 0;">
+                {% if has_discount %}
+                    Congratulations! Our AI has successfully negotiated a {{ discount_percentage }}% discount on your medical bill.
+                {% else %}
+                    The discount period has expired. Click the reset button to start a new negotiation session.
+                {% endif %}
+            </p>
+        </div>
+        
+        <button onclick="window.history.back()" class="back-btn">← Back to Upload</button>
+    </div>
+    
+    <button onclick="window.location.href='?reset_discount=1'" class="reset-btn">
+        🔄 Reset Discount
+    </button>
+</body>
+</html> 

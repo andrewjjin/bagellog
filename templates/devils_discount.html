@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Devil's Discount - Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h1 {
+            color: #d32f2f;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .upload-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            background-color: #fafafa;
+        }
+        .file-input {
+            margin: 20px 0;
+            padding: 10px;
+            font-size: 16px;
+        }
+        .process-btn {
+            background-color: #d32f2f;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 15px;
+            transition: background-color 0.3s;
+        }
+        .process-btn:hover {
+            background-color: #b71c1c;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Devil's Discount</h1>
+        <p class="subtitle">Upload your medical bill and let us work our magic!</p>
+        
+        <div class="upload-section">
+            <h3>Upload Your Medical Bill</h3>
+            <form action="/medical-bill/" method="get">
+                <input type="file" class="file-input" accept=".pdf,.jpg,.jpeg,.png" required>
+                <button type="submit" class="process-btn">Process Bill →</button>
+            </form>
+        </div>
+        
+        <p style="color: #888; font-size: 14px;">
+            Supported formats: PDF, JPG, PNG
+        </p>
+    </div>
+</body>
+</html> 
