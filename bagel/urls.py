@@ -17,12 +17,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path #, include
 
-from pages.views import home_view, devils_discount_view, medical_bill_view
+from pages.views import home_view, devils_discount_view, medical_bill_view, brackets_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home_view),
     path('devils-discount/', devils_discount_view, name='devils_discount'),
     path('medical-bill/', medical_bill_view, name='medical_bill'),
+    path('brackets/', brackets_view, name='brackets'),
     # path('matches/', include('matches.urls')),
 ]
