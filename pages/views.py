@@ -56,6 +56,8 @@ def brackets_view(request):
         if 'submit_scores' in request.POST:
             # Handle score submission
             bracket_data = request.session.get('bracket_data', [])
+            print(f"DEBUG: Processing scores. Bracket data exists: {bool(bracket_data)}")
+            
             if bracket_data:
                 # Process scores and update bracket
                 bracket_data = process_scores(request.POST, bracket_data)
@@ -65,6 +67,9 @@ def brackets_view(request):
                 context['num_participants'] = request.session.get('num_participants', 0)
                 context['total_slots'] = request.session.get('total_slots', 0)
                 context['show_scores'] = True
+                print(f"DEBUG: Updated bracket with {len(bracket_data)} rounds")
+            else:
+                context['error'] = "No bracket data found. Please generate a bracket first."
         else:
             # Handle initial bracket generation
             participants = request.POST.get('participants', '').strip()
@@ -91,12 +96,23 @@ def brackets_view(request):
                             context['participants'] = participant_list[:num_participants]
                             context['num_participants'] = num_participants
                             context['total_slots'] = len(bracket_data[0])
+                            print(f"DEBUG: Generated bracket with {len(bracket_data)} rounds")
                         else:
                             context['error'] = f"Not enough participants provided. Need {num_participants}, got {len(participant_list)}"
                     else:
                         context['error'] = "Number of participants must be positive"
                 except ValueError:
                     context['error'] = "Number of participants must be a valid integer"
+    else:
+        # GET request - check if we have existing bracket data
+        bracket_data = request.session.get('bracket_data', [])
+        if bracket_data:
+            context['bracket_data'] = bracket_data
+            context['participants'] = request.session.get('participants', [])
+            context['num_participants'] = request.session.get('num_participants', 0)
+            context['total_slots'] = request.session.get('total_slots', 0)
+            context['show_scores'] = True
+            print(f"DEBUG: Loaded existing bracket with {len(bracket_data)} rounds")
     
     return render(request, "brackets.html", context)
 
@@ -150,7 +166,7 @@ def generate_bracket(participants):
                 'winner': participants[positions[pos2]] if positions[pos2] < num_participants else 'BYE',
                 'score1': None,
                 'score2': None,
-                'match_id': f"match_{len(first_round)}_0"
+                'match_id': f"match_0_{len(first_round)}"
             }
         elif pos2 in bye_positions:
             match = {
@@ -159,7 +175,7 @@ def generate_bracket(participants):
                 'winner': participants[positions[pos1]] if positions[pos1] < num_participants else 'BYE',
                 'score1': None,
                 'score2': None,
-                'match_id': f"match_{len(first_round)}_0"
+                'match_id': f"match_0_{len(first_round)}"
             }
         else:
             team1 = participants[positions[pos1]] if positions[pos1] < num_participants else 'BYE'
@@ -170,7 +186,7 @@ def generate_bracket(participants):
                 'winner': None,  # No auto-winner for non-BYE matches
                 'score1': None,
                 'score2': None,
-                'match_id': f"match_{len(first_round)}_0"
+                'match_id': f"match_0_{len(first_round)}"
             }
         
         first_round.append(match)
@@ -213,6 +229,8 @@ def generate_bracket(participants):
 
 def process_scores(request_data, bracket_data):
     """Process submitted scores and update bracket winners"""
+    print(f"DEBUG: Processing scores. Request data keys: {list(request_data.keys())}")
+    
     for round_idx, round_matches in enumerate(bracket_data):
         for match_idx, match in enumerate(round_matches):
             match_id = match['match_id']
@@ -221,10 +239,14 @@ def process_scores(request_data, bracket_data):
             score1_key = f"score1_{match_id}"
             score2_key = f"score2_{match_id}"
             
+            print(f"DEBUG: Checking match {match_id} - score1_key: {score1_key}, score2_key: {score2_key}")
+            
             if score1_key in request_data and score2_key in request_data:
                 try:
                     score1 = int(request_data[score1_key]) if request_data[score1_key] else None
                     score2 = int(request_data[score2_key]) if request_data[score2_key] else None
+                    
+                    print(f"DEBUG: Match {match_id} - score1: {score1}, score2: {score2}")
                     
                     if score1 is not None and score2 is not None:
                         match['score1'] = score1
@@ -238,6 +260,8 @@ def process_scores(request_data, bracket_data):
                         else:
                             match['winner'] = 'Tie'  # Handle ties if needed
                         
+                        print(f"DEBUG: Match {match_id} winner: {match['winner']}")
+                        
                         # Update next round if this isn't the final round
                         if round_idx < len(bracket_data) - 1:
                             next_round_idx = round_idx + 1
@@ -249,8 +273,11 @@ def process_scores(request_data, bracket_data):
                                     next_match['team1'] = match['winner']
                                 else:  # Second team in pair
                                     next_match['team2'] = match['winner']
+                                
+                                print(f"DEBUG: Updated next round match {next_match['match_id']} - team1: {next_match['team1']}, team2: {next_match['team2']}")
                 
                 except ValueError:
+                    print(f"DEBUG: Invalid score input for match {match_id}")
                     pass  # Invalid score input
     
     return bracket_data
