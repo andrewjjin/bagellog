@@ -21,7 +21,7 @@ from pages.views import home_view, devils_discount_view, medical_bill_view, brac
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', home_view),
+    path('', home_view, name='home'),
     path('devils-discount/', devils_discount_view, name='devils_discount'),
     path('medical-bill/', medical_bill_view, name='medical_bill'),
     path('brackets/', brackets_view, name='brackets'),
