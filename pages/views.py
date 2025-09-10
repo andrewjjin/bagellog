@@ -4,7 +4,7 @@ import math
 # Create your views here.
 def home_view(request, *args, **kwargs):
     print("user: ", request.user)
-    return render(request, "home.html", {})
+    return render(request, "index.html", {})
 
 def devils_discount_view(request):
     """View for the devils-discount page with file upload"""
