@@ -195,32 +195,6 @@
             margin-top: 5px;
         }
         
-        .score-inputs {
-            margin-top: 10px;
-            text-align: center;
-        }
-        
-        .score-row {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 5px;
-        }
-        
-        .score-input {
-            width: 80px;
-            text-align: center;
-            font-size: 16px;
-            font-weight: 600;
-            color: #333;
-        }
-        
-        .vs {
-            font-size: 18px;
-            font-weight: bold;
-            color: #555;
-        }
-        
         .winner-display {
             margin-top: 10px;
             font-size: 14px;
@@ -267,6 +241,92 @@
             color: #495057;
         }
         
+        .team-input {
+            width: 100%;
+            padding: 8px 12px;
+            margin: 4px 0;
+            border: 2px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            background-color: white;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+        
+        .team-input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        }
+        
+        .team1-input {
+            border-left: 4px solid #2196f3;
+        }
+        
+        .team2-input {
+            border-left: 4px solid #9c27b0;
+        }
+        
+        .team-input:disabled {
+            background-color: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .team-score-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 4px 0;
+        }
+        
+        .team-score-row .team-input {
+            flex: 1;
+            margin: 0;
+        }
+        
+        .team-score-row .team {
+            flex: 1;
+            margin: 0;
+        }
+        
+        .team-score-row .score-input {
+            width: 60px;
+            margin: 0;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .team1-score {
+            border-left: 4px solid #2196f3;
+        }
+        
+        .team2-score {
+            border-left: 4px solid #9c27b0;
+        }
+        
+        .vs-divider {
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #666;
+            margin: 5px 0;
+            padding: 5px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        
+        .match.empty {
+            border-color: #dee2e6;
+            background-color: #f8f9fa;
+        }
+        
+        .match.empty .team-input {
+            border-color: #dee2e6;
+            background-color: #f8f9fa;
+        }
+        
         @media (max-width: 768px) {
             .bracket {
                 flex-direction: column;
@@ -299,13 +359,6 @@
                     <input type="number" id="num_participants" name="num_participants" 
                            min="2" max="64" value="{{ num_participants|default:'8' }}" required>
                     <div class="help-text">Enter the number of participants (2-64)</div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="participants">Participant Names:</label>
-                    <textarea id="participants" name="participants" 
-                              placeholder="Enter participant names, one per line or separated by commas&#10;Example:&#10;Team Alpha&#10;Team Beta&#10;Team Gamma&#10;Team Delta" required>{{ participants|default:'' }}</textarea>
-                    <div class="help-text">Enter participant names, one per line or separated by commas</div>
                 </div>
                 
                 <button type="submit" class="submit-btn">Generate Bracket</button>
@@ -343,41 +396,80 @@
                                 Round 1
                             {% elif forloop.last %}
                                 Final
+                            {% elif forloop.revcounter == 2 %}
+                                Semi-Final
+                            {% elif forloop.revcounter == 3 %}
+                                Quarter-Final
                             {% else %}
                                 Round {{ forloop.counter }}
                             {% endif %}
                         </div>
                         
                         {% for match in round_matches %}
-                        <div class="match {% if match.team1 == 'BYE' or match.team2 == 'BYE' %}bye{% elif match.winner %}completed{% else %}pending{% endif %} {% if forloop.parentloop.last %}final{% endif %}">
-                            <div class="team team1 {% if match.team1 == 'BYE' %}bye-team{% endif %} {% if match.team1 == match.winner %}winner{% endif %}">
-                                {{ match.team1|default:"TBD" }}
+                        <div class="match {% if match.team1 == 'BYE' or match.team2 == 'BYE' %}bye{% elif match.winner %}completed{% elif match.team1 and match.team2 %}pending{% else %}empty{% endif %} {% if forloop.parentloop.last %}final{% endif %}">
+                            {% if forloop.parentloop.first %}
+                            <div class="team-score-row">
+                                <input type="text" name="team1_{{ match.match_id }}" 
+                                       value="{{ match.team1|default:'' }}" 
+                                       placeholder="Team Name" class="team-input team1-input"
+                                       {% if match.winner %}disabled{% endif %}>
+                                {% if match.team1 and match.team1 != 'BYE' and match.team2 and match.team2 != 'BYE' %}
+                                <input type="number" name="score1_{{ match.match_id }}" 
+                                       value="{{ match.score1|default:'' }}" 
+                                       placeholder="Score" min="0" class="score-input team1-score"
+                                       {% if match.winner %}disabled{% endif %}>
+                                {% endif %}
                             </div>
-                            
-                            {% if match.team1 != 'BYE' and match.team2 != 'BYE' %}
-                            <div class="score-inputs">
-                                <div class="score-row">
-                                    <input type="number" name="score1_{{ match.match_id }}" 
-                                           value="{{ match.score1|default:'' }}" 
-                                           placeholder="Score" min="0" class="score-input"
-                                           {% if match.winner %}disabled{% endif %}>
-                                    <span class="vs">vs</span>
-                                    <input type="number" name="score2_{{ match.match_id }}" 
-                                           value="{{ match.score2|default:'' }}" 
-                                           placeholder="Score" min="0" class="score-input"
-                                           {% if match.winner %}disabled{% endif %}>
+                            {% else %}
+                            <div class="team-score-row">
+                                <div class="team team1 {% if match.team1 == 'BYE' %}bye-team{% endif %} {% if match.team1 == match.winner %}winner{% endif %}">
+                                    {{ match.team1|default:"TBD" }}
                                 </div>
-                                {% if match.winner %}
-                                <div class="winner-display">
-                                    Winner: <strong>{{ match.winner }}</strong>
-                                </div>
+                                {% if match.team1 and match.team1 != 'BYE' and match.team2 and match.team2 != 'BYE' %}
+                                <input type="number" name="score1_{{ match.match_id }}" 
+                                       value="{{ match.score1|default:'' }}" 
+                                       placeholder="Score" min="0" class="score-input team1-score"
+                                       {% if match.winner %}disabled{% endif %}>
                                 {% endif %}
                             </div>
                             {% endif %}
                             
-                            <div class="team team2 {% if match.team2 == 'BYE' %}bye-team{% endif %} {% if match.team2 == match.winner %}winner{% endif %}">
-                                {{ match.team2|default:"TBD" }}
+                            {% if match.team1 and match.team1 != 'BYE' and match.team2 and match.team2 != 'BYE' %}
+                            <div class="vs-divider">vs</div>
+                            {% endif %}
+                            
+                            {% if forloop.parentloop.first %}
+                            <div class="team-score-row">
+                                <input type="text" name="team2_{{ match.match_id }}" 
+                                       value="{{ match.team2|default:'' }}" 
+                                       placeholder="Team Name" class="team-input team2-input"
+                                       {% if match.winner %}disabled{% endif %}>
+                                {% if match.team1 and match.team1 != 'BYE' and match.team2 and match.team2 != 'BYE' %}
+                                <input type="number" name="score2_{{ match.match_id }}" 
+                                       value="{{ match.score2|default:'' }}" 
+                                       placeholder="Score" min="0" class="score-input team2-score"
+                                       {% if match.winner %}disabled{% endif %}>
+                                {% endif %}
                             </div>
+                            {% else %}
+                            <div class="team-score-row">
+                                <div class="team team2 {% if match.team2 == 'BYE' %}bye-team{% endif %} {% if match.team2 == match.winner %}winner{% endif %}">
+                                    {{ match.team2|default:"TBD" }}
+                                </div>
+                                {% if match.team1 and match.team1 != 'BYE' and match.team2 and match.team2 != 'BYE' %}
+                                <input type="number" name="score2_{{ match.match_id }}" 
+                                       value="{{ match.score2|default:'' }}" 
+                                       placeholder="Score" min="0" class="score-input team2-score"
+                                       {% if match.winner %}disabled{% endif %}>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            
+                            {% if match.winner %}
+                            <div class="winner-display">
+                                Winner: <strong>{{ match.winner }}</strong>
+                            </div>
+                            {% endif %}
                             
                             {% if match.team1 == 'BYE' or match.team2 == 'BYE' %}
                             <div class="match-info">BYE - Automatic advancement</div>
@@ -399,6 +491,8 @@
                             Round 1
                         {% elif forloop.last %}
                             Final
+                        {% elif forloop.revcounter == 2 %}
+                            Semi-Final
                         {% else %}
                             Round {{ forloop.counter }}
                         {% endif %}

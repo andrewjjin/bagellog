@@ -69,32 +69,23 @@ def brackets_view(request):
                 context['error'] = "No bracket data found. Please generate a bracket first."
         else:
             # Handle initial bracket generation
-            participants = request.POST.get('participants', '').strip()
             num_participants = request.POST.get('num_participants', '').strip()
             
-            if participants and num_participants:
+            if num_participants:
                 try:
                     num_participants = int(num_participants)
                     if num_participants > 0:
-                        # Parse participants (comma-separated or newline-separated)
-                        participant_list = [p.strip() for p in participants.replace('\n', ',').split(',') if p.strip()]
+                        # Generate bracket with empty slots
+                        bracket_data = generate_empty_bracket(num_participants)
                         
-                        if len(participant_list) >= num_participants:
-                            # Generate bracket
-                            bracket_data = generate_bracket(participant_list[:num_participants])
-                            
-                            # Store in session for score updates
-                            request.session['bracket_data'] = bracket_data
-                            request.session['participants'] = participant_list[:num_participants]
-                            request.session['num_participants'] = num_participants
-                            request.session['total_slots'] = len(bracket_data[0])
-                            
-                            context['bracket_data'] = bracket_data
-                            context['participants'] = participant_list[:num_participants]
-                            context['num_participants'] = num_participants
-                            context['total_slots'] = len(bracket_data[0])
-                        else:
-                            context['error'] = f"Not enough participants provided. Need {num_participants}, got {len(participant_list)}"
+                        # Store in session for score updates
+                        request.session['bracket_data'] = bracket_data
+                        request.session['num_participants'] = num_participants
+                        request.session['total_slots'] = len(bracket_data[0])
+                        
+                        context['bracket_data'] = bracket_data
+                        context['num_participants'] = num_participants
+                        context['total_slots'] = len(bracket_data[0])
                     else:
                         context['error'] = "Number of participants must be positive"
                 except ValueError:
@@ -104,24 +95,21 @@ def brackets_view(request):
         bracket_data = request.session.get('bracket_data', [])
         if bracket_data:
             context['bracket_data'] = bracket_data
-            context['participants'] = request.session.get('participants', [])
             context['num_participants'] = request.session.get('num_participants', 0)
             context['total_slots'] = request.session.get('total_slots', 0)
             context['show_scores'] = True
     
     return render(request, "brackets.html", context)
 
-def generate_bracket(participants):
+def generate_empty_bracket(num_participants):
     """
-    Generate a single-elimination tournament bracket
+    Generate a single-elimination tournament bracket with empty slots for team names
     Returns a list of rounds, where each round is a list of matches
     """
-    num_participants = len(participants)
-    
     # Find the next power of 2
     next_power_of_2 = 2 ** math.ceil(math.log2(num_participants))
     
-    # Create the bracket with BYE slots
+    # Create the bracket with empty slots
     bracket = []
     
     # First round (seeding round)
@@ -157,27 +145,25 @@ def generate_bracket(participants):
         if pos1 in bye_positions:
             match = {
                 'team1': 'BYE',
-                'team2': participants[positions[pos2]] if positions[pos2] < num_participants else 'BYE',
-                'winner': participants[positions[pos2]] if positions[pos2] < num_participants else 'BYE',
+                'team2': '',  # Empty slot for team name input
+                'winner': '',  # Will be filled when team name is entered
                 'score1': None,
                 'score2': None,
                 'match_id': f"match_0_{len(first_round)}"
             }
         elif pos2 in bye_positions:
             match = {
-                'team1': participants[positions[pos1]] if positions[pos1] < num_participants else 'BYE',
+                'team1': '',  # Empty slot for team name input
                 'team2': 'BYE',
-                'winner': participants[positions[pos1]] if positions[pos1] < num_participants else 'BYE',
+                'winner': '',  # Will be filled when team name is entered
                 'score1': None,
                 'score2': None,
                 'match_id': f"match_0_{len(first_round)}"
             }
         else:
-            team1 = participants[positions[pos1]] if positions[pos1] < num_participants else 'BYE'
-            team2 = participants[positions[pos2]] if positions[pos2] < num_participants else 'BYE'
             match = {
-                'team1': team1,
-                'team2': team2,
+                'team1': '',  # Empty slot for team name input
+                'team2': '',  # Empty slot for team name input
                 'winner': None,  # No auto-winner for non-BYE matches
                 'score1': None,
                 'score2': None,
@@ -207,9 +193,9 @@ def generate_bracket(participants):
             else:
                 # Handle odd number of teams in round
                 match = {
-                    'team1': current_round[i]['winner'],
+                    'team1': None,  # Will be filled from previous round winner
                     'team2': None,
-                    'winner': current_round[i]['winner'],
+                    'winner': None,
                     'score1': None,
                     'score2': None,
                     'match_id': f"match_{round_num}_{len(next_round)}"
@@ -222,6 +208,21 @@ def generate_bracket(participants):
     
     return bracket
 
+def _advance_winner_to_next_round(bracket_data, round_idx, match_idx, winner):
+    """Helper function to advance a winner to the next round"""
+    if round_idx < len(bracket_data) - 1:
+        next_round_idx = round_idx + 1
+        next_match_idx = match_idx // 2
+        
+        if next_match_idx < len(bracket_data[next_round_idx]):
+            next_match = bracket_data[next_round_idx][next_match_idx]
+            if match_idx % 2 == 0:  # First team in pair
+                next_match['team1'] = winner
+            else:  # Second team in pair
+                next_match['team2'] = winner
+            
+            print(f"DEBUG: Advanced BYE winner {winner} to next round match {next_match['match_id']}")
+
 def process_scores(request_data, bracket_data):
     """Process submitted scores and update bracket winners"""
     print(f"DEBUG: Processing scores. Request data keys: {list(request_data.keys())}")
@@ -229,6 +230,26 @@ def process_scores(request_data, bracket_data):
     for round_idx, round_matches in enumerate(bracket_data):
         for match_idx, match in enumerate(round_matches):
             match_id = match['match_id']
+            
+            # Get team names from form (for first round only)
+            if round_idx == 0:  # First round
+                team1_key = f"team1_{match_id}"
+                team2_key = f"team2_{match_id}"
+                
+                if team1_key in request_data:
+                    match['team1'] = request_data[team1_key].strip()
+                if team2_key in request_data:
+                    match['team2'] = request_data[team2_key].strip()
+                
+                # Handle BYE logic for first round
+                if match['team1'] == 'BYE' and match['team2']:
+                    match['winner'] = match['team2']
+                    # Advance BYE winner to next round
+                    _advance_winner_to_next_round(bracket_data, round_idx, match_idx, match['winner'])
+                elif match['team2'] == 'BYE' and match['team1']:
+                    match['winner'] = match['team1']
+                    # Advance BYE winner to next round
+                    _advance_winner_to_next_round(bracket_data, round_idx, match_idx, match['winner'])
             
             # Get scores from form
             score1_key = f"score1_{match_id}"
@@ -258,18 +279,7 @@ def process_scores(request_data, bracket_data):
                         print(f"DEBUG: Match {match_id} winner: {match['winner']}")
                         
                         # Update next round if this isn't the final round
-                        if round_idx < len(bracket_data) - 1:
-                            next_round_idx = round_idx + 1
-                            next_match_idx = match_idx // 2
-                            
-                            if next_match_idx < len(bracket_data[next_round_idx]):
-                                next_match = bracket_data[next_round_idx][next_match_idx]
-                                if match_idx % 2 == 0:  # First team in pair
-                                    next_match['team1'] = match['winner']
-                                else:  # Second team in pair
-                                    next_match['team2'] = match['winner']
-                                
-                                print(f"DEBUG: Updated next round match {next_match['match_id']} - team1: {next_match['team1']}, team2: {next_match['team2']}")
+                        _advance_winner_to_next_round(bracket_data, round_idx, match_idx, match['winner'])
                 
                 except ValueError:
                     print(f"DEBUG: Invalid score input for match {match_id}")
