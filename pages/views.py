@@ -55,9 +55,7 @@ def brackets_view(request):
     if request.method == 'POST':
         if 'submit_scores' in request.POST:
             # Handle score submission
-            bracket_data = request.session.get('bracket_data', [])
-            print(f"DEBUG: Processing scores. Bracket data exists: {bool(bracket_data)}")
-            
+            bracket_data = request.session.get('bracket_data', [])            
             if bracket_data:
                 # Process scores and update bracket
                 bracket_data = process_scores(request.POST, bracket_data)
@@ -67,7 +65,6 @@ def brackets_view(request):
                 context['num_participants'] = request.session.get('num_participants', 0)
                 context['total_slots'] = request.session.get('total_slots', 0)
                 context['show_scores'] = True
-                print(f"DEBUG: Updated bracket with {len(bracket_data)} rounds")
             else:
                 context['error'] = "No bracket data found. Please generate a bracket first."
         else:
@@ -96,7 +93,6 @@ def brackets_view(request):
                             context['participants'] = participant_list[:num_participants]
                             context['num_participants'] = num_participants
                             context['total_slots'] = len(bracket_data[0])
-                            print(f"DEBUG: Generated bracket with {len(bracket_data)} rounds")
                         else:
                             context['error'] = f"Not enough participants provided. Need {num_participants}, got {len(participant_list)}"
                     else:
@@ -112,7 +108,6 @@ def brackets_view(request):
             context['num_participants'] = request.session.get('num_participants', 0)
             context['total_slots'] = request.session.get('total_slots', 0)
             context['show_scores'] = True
-            print(f"DEBUG: Loaded existing bracket with {len(bracket_data)} rounds")
     
     return render(request, "brackets.html", context)
 

@@ -1,0 +1,449 @@
+{% extends 'base.html' %}
+
+{% block title %}Tournament Brackets - Bagel{% endblock %}
+
+{% block extra_css %}
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        .form-section {
+            background-color: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        input[type="number"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ced4da;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+        
+        input[type="number"]:focus, textarea:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+        
+        .submit-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+        
+        .error {
+            color: #dc3545;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        
+        .bracket-container {
+            margin-top: 30px;
+            overflow-x: auto;
+        }
+        
+        .bracket {
+            display: flex;
+            gap: 40px;
+            min-width: max-content;
+            padding: 20px 0;
+        }
+        
+        .round {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .round-title {
+            text-align: center;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .match {
+            background-color: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            min-width: 200px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: relative;
+        }
+        
+        .match.bye {
+            border-color: #ffc107;
+            background-color: #fff3cd;
+        }
+        
+        .match.final {
+            border-color: #28a745;
+            background-color: #d4edda;
+        }
+        
+        .team {
+            padding: 8px 12px;
+            margin: 4px 0;
+            border-radius: 4px;
+            font-weight: 500;
+            min-height: 20px;
+        }
+        
+        .team1 {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .team2 {
+            background-color: #f3e5f5;
+            border-left: 4px solid #9c27b0;
+        }
+        
+        .bye-team {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            color: #856404;
+            font-style: italic;
+        }
+        
+        .winner {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            font-weight: 600;
+        }
+        
+        .match-info {
+            text-align: center;
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 10px;
+            font-style: italic;
+        }
+        
+        .stats {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .stats h3 {
+            margin: 0 0 10px 0;
+            color: #495057;
+        }
+        
+        .stats p {
+            margin: 5px 0;
+            color: #6c757d;
+        }
+        
+        .help-text {
+            color: #6c757d;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .score-inputs {
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .score-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+        
+        .score-input {
+            width: 80px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .vs {
+            font-size: 18px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .winner-display {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        .score-form {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .match.completed {
+            border-color: #28a745;
+            background-color: #f8fff9;
+        }
+        
+        .match.completed .team.winner {
+            background-color: #d4edda;
+            border-left-color: #28a745;
+        }
+        
+        .match.pending {
+            border-color: #ffc107;
+            background-color: #fffbf0;
+        }
+        
+        .match.pending .team {
+            color: #856404;
+        }
+        
+        .match.bye {
+            border-color: #6c757d;
+            background-color: #f8f9fa;
+        }
+        
+        .match.bye .team.bye-team {
+            background-color: #e9ecef;
+            border-left-color: #6c757d;
+            color: #495057;
+        }
+        
+        @media (max-width: 768px) {
+            .bracket {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .round {
+                flex-direction: row;
+                overflow-x: auto;
+                gap: 15px;
+                padding-bottom: 10px;
+            }
+            
+            .match {
+                min-width: 180px;
+                flex-shrink: 0;
+            }
+        }
+{% endblock %}
+
+{% block content %}
+        <h1>🏆 Tournament Bracket Generator</h1>
+        
+        <div class="form-section">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="num_participants">Number of Participants:</label>
+                    <input type="number" id="num_participants" name="num_participants" 
+                           min="2" max="64" value="{{ num_participants|default:'8' }}" required>
+                    <div class="help-text">Enter the number of participants (2-64)</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="participants">Participant Names:</label>
+                    <textarea id="participants" name="participants" 
+                              placeholder="Enter participant names, one per line or separated by commas&#10;Example:&#10;Team Alpha&#10;Team Beta&#10;Team Gamma&#10;Team Delta" required>{{ participants|default:'' }}</textarea>
+                    <div class="help-text">Enter participant names, one per line or separated by commas</div>
+                </div>
+                
+                <button type="submit" class="submit-btn">Generate Bracket</button>
+            </form>
+        </div>
+        
+        {% if error %}
+        <div class="error">
+            <strong>Error:</strong> {{ error }}
+        </div>
+        {% endif %}
+        
+        {% if bracket_data %}
+        <div class="stats">
+            <h3>Tournament Information</h3>
+            <p><strong>Participants:</strong> {{ num_participants }}</p>
+            <p><strong>Total Slots:</strong> {{ total_slots }}</p>
+            <p><strong>Rounds:</strong> {{ bracket_data|length }}</p>
+            {% if total_slots > num_participants %}
+            <p><strong>BYE Slots:</strong> {{ total_slots|add:"-"|add:num_participants }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="bracket-container">
+            {% if bracket_data %}
+            <form method="POST" class="score-form">
+                {% csrf_token %}
+                <input type="hidden" name="submit_scores" value="1">
+                
+                <div class="bracket">
+                    {% for round_matches in bracket_data %}
+                    <div class="round">
+                        <div class="round-title">
+                            {% if forloop.first %}
+                                Round 1
+                            {% elif forloop.last %}
+                                Final
+                            {% else %}
+                                Round {{ forloop.counter }}
+                            {% endif %}
+                        </div>
+                        
+                        {% for match in round_matches %}
+                        <div class="match {% if match.team1 == 'BYE' or match.team2 == 'BYE' %}bye{% elif match.winner %}completed{% else %}pending{% endif %} {% if forloop.parentloop.last %}final{% endif %}">
+                            <div class="team team1 {% if match.team1 == 'BYE' %}bye-team{% endif %} {% if match.team1 == match.winner %}winner{% endif %}">
+                                {{ match.team1|default:"TBD" }}
+                            </div>
+                            
+                            {% if match.team1 != 'BYE' and match.team2 != 'BYE' %}
+                            <div class="score-inputs">
+                                <div class="score-row">
+                                    <input type="number" name="score1_{{ match.match_id }}" 
+                                           value="{{ match.score1|default:'' }}" 
+                                           placeholder="Score" min="0" class="score-input"
+                                           {% if match.winner %}disabled{% endif %}>
+                                    <span class="vs">vs</span>
+                                    <input type="number" name="score2_{{ match.match_id }}" 
+                                           value="{{ match.score2|default:'' }}" 
+                                           placeholder="Score" min="0" class="score-input"
+                                           {% if match.winner %}disabled{% endif %}>
+                                </div>
+                                {% if match.winner %}
+                                <div class="winner-display">
+                                    Winner: <strong>{{ match.winner }}</strong>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            
+                            <div class="team team2 {% if match.team2 == 'BYE' %}bye-team{% endif %} {% if match.team2 == match.winner %}winner{% endif %}">
+                                {{ match.team2|default:"TBD" }}
+                            </div>
+                            
+                            {% if match.team1 == 'BYE' or match.team2 == 'BYE' %}
+                            <div class="match-info">BYE - Automatic advancement</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <button type="submit" class="submit-btn">Update Bracket</button>
+            </form>
+            {% else %}
+            <div class="bracket">
+                {% for round_matches in bracket_data %}
+                <div class="round">
+                    <div class="round-title">
+                        {% if forloop.first %}
+                            Round 1
+                        {% elif forloop.last %}
+                            Final
+                        {% else %}
+                            Round {{ forloop.counter }}
+                        {% endif %}
+                    </div>
+                    
+                    {% for match in round_matches %}
+                    <div class="match {% if match.team1 == 'BYE' or match.team2 == 'BYE' %}bye{% elif match.winner %}completed{% else %}pending{% endif %} {% if forloop.parentloop.last %}final{% endif %}">
+                        <div class="team team1 {% if match.team1 == 'BYE' %}bye-team{% endif %} {% if match.team1 == match.winner %}winner{% endif %}">
+                            {{ match.team1|default:"TBD" }}
+                        </div>
+                        
+                        {% if match.team1 != 'BYE' and match.team2 != 'BYE' %}
+                        <div class="score-inputs">
+                            <div class="score-row">
+                                <input type="number" name="score1_{{ match.match_id }}" 
+                                       value="{{ match.score1|default:'' }}" 
+                                       placeholder="Score" min="0" class="score-input"
+                                       {% if match.winner %}disabled{% endif %}>
+                                <span class="vs">vs</span>
+                                <input type="number" name="score2_{{ match.match_id }}" 
+                                       value="{{ match.score2|default:'' }}" 
+                                       placeholder="Score" min="0" class="score-input"
+                                       {% if match.winner %}disabled{% endif %}>
+                            </div>
+                            {% if match.winner %}
+                            <div class="winner-display">
+                                Winner: <strong>{{ match.winner }}</strong>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="team team2 {% if match.team2 == 'BYE' %}bye-team{% endif %} {% if match.team2 == match.winner %}winner{% endif %}">
+                            {{ match.team2|default:"TBD" }}
+                        </div>
+                        
+                        {% if match.team1 == 'BYE' or match.team2 == 'BYE' %}
+                        <div class="match-info">BYE - Automatic advancement</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+{% endblock %} 
