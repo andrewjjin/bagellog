@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ tournament.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h2>{{ tournament.name }}</h2>
+            <p class="text-muted">{{ tournament.description }}</p>
+            
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5>Tournament Details</h5>
+                    <ul class="list-unstyled">
+                        <li><strong>Start Date:</strong> {{ tournament.start_date|date:"M d, Y H:i" }}</li>
+                        <li><strong>End Date:</strong> {{ tournament.end_date|date:"M d, Y H:i" }}</li>
+                        <li><strong>Participants:</strong> {{ tournament.participant_count }}/{{ tournament.max_participants }}</li>
+                        <li><strong>Entry Fee:</strong> ${{ tournament.entry_fee }}</li>
+                        <li><strong>Prize Pool:</strong> ${{ tournament.prize_pool }}</li>
+                        <li><strong>Status:</strong> <span class="badge badge-{{ tournament.status }}">{{ tournament.get_status_display }}</span></li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h5>Participants</h5>
+                    {% if participants %}
+                        <ul class="list-group">
+                            {% for participant in participants %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ participant.player.first_name }} {{ participant.player.last_name }}
+                                {% if participant.seed_position %}
+                                    <span class="badge badge-primary badge-pill">Seed {{ participant.seed_position }}</span>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No participants yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if user.is_authenticated %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Bracket Management</h5>
+                        {% if user_bracket %}
+                            <p>You have a saved bracket: <strong>{{ user_bracket.name }}</strong></p>
+                            <p>Completion: {{ user_bracket.completion_percentage|floatformat:1 }}% ({{ user_bracket.completed_matches }}/{{ user_bracket.match_count }} matches)</p>
+                            <a href="{% url 'load_bracket' tournament.id %}" class="btn btn-primary">Load Bracket</a>
+                            <a href="{% url 'brackets_view' %}" class="btn btn-secondary">Edit Bracket</a>
+                        {% else %}
+                            <p>You don't have a saved bracket for this tournament yet.</p>
+                            <a href="{% url 'brackets_view' %}" class="btn btn-primary">Create Bracket</a>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if can_register %}
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Registration</h5>
+                            <p>You can register for this tournament.</p>
+                            <a href="{% url 'register_tournament' tournament.id %}" class="btn btn-success">Register</a>
+                        </div>
+                    </div>
+                {% elif tournament.participants.filter(player=user.player, is_active=True).exists %}
+                    <div class="alert alert-info">
+                        <strong>You are registered for this tournament!</strong>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Actions</h5>
+                    <a href="{% url 'tournament_list' %}" class="btn btn-secondary btn-block mb-2">Back to Tournaments</a>
+                    {% if user.is_authenticated and user_bracket %}
+                        <form method="post" action="{% url 'save_bracket' tournament.id %}" class="mt-2">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="bracket_name">Bracket Name:</label>
+                                <input type="text" class="form-control" id="bracket_name" name="bracket_name" value="{{ user_bracket.name }}">
+                            </div>
+                            <button type="submit" class="btn btn-warning btn-block">Update Bracket</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

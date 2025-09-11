@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}My Brackets{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>My Saved Brackets</h2>
+            
+            {% if brackets %}
+                <div class="row">
+                    {% for bracket in brackets %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ bracket.name }}</h5>
+                                <p class="card-text">
+                                    <strong>Tournament:</strong> {{ bracket.tournament.name }}<br>
+                                    <strong>Type:</strong> {{ bracket.get_bracket_type_display }}<br>
+                                    <strong>Created:</strong> {{ bracket.created_at|date:"M d, Y" }}<br>
+                                    <strong>Last Updated:</strong> {{ bracket.updated_at|date:"M d, Y H:i" }}
+                                </p>
+                                
+                                <div class="progress mb-3">
+                                    <div class="progress-bar" role="progressbar" style="width: {{ bracket.completion_percentage }}%">
+                                        {{ bracket.completion_percentage|floatformat:1 }}%
+                                    </div>
+                                </div>
+                                
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        {{ bracket.completed_matches }}/{{ bracket.match_count }} matches completed
+                                    </small>
+                                </p>
+                                
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'tournament_detail' bracket.tournament.id %}" class="btn btn-primary btn-sm">View Tournament</a>
+                                    <a href="{% url 'load_bracket' bracket.tournament.id %}" class="btn btn-success btn-sm">Load Bracket</a>
+                                </div>
+                                
+                                {% if bracket.is_public %}
+                                    <span class="badge badge-info ml-2">Public</span>
+                                {% else %}
+                                    <span class="badge badge-secondary ml-2">Private</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <h4>No Saved Brackets</h4>
+                    <p>You haven't saved any brackets yet. Create a bracket for a tournament to get started!</p>
+                    <a href="{% url 'tournament_list' %}" class="btn btn-primary">View Tournaments</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

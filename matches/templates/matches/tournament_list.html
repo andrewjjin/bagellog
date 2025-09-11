@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Tournaments{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h2>Tournaments</h2>
+            {% if tournaments %}
+                <div class="row">
+                    {% for tournament in tournaments %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ tournament.name }}</h5>
+                                <p class="card-text">{{ tournament.description|truncatewords:20 }}</p>
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        Start: {{ tournament.start_date|date:"M d, Y" }}<br>
+                                        Participants: {{ tournament.participant_count }}/{{ tournament.max_participants }}<br>
+                                        Status: <span class="badge badge-{{ tournament.status }}">{{ tournament.get_status_display }}</span>
+                                    </small>
+                                </p>
+                                <a href="{% url 'tournament_detail' tournament.id %}" class="btn btn-primary">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No tournaments available.</p>
+            {% endif %}
+        </div>
+        <div class="col-md-4">
+            {% if user.is_authenticated %}
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Quick Actions</h5>
+                        <a href="{% url 'create_tournament' %}" class="btn btn-success btn-block mb-2">Create Tournament</a>
+                        <a href="{% url 'user_brackets' %}" class="btn btn-info btn-block">My Brackets</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
