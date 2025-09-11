@@ -52,6 +52,12 @@ def brackets_view(request):
     """View for creating single-elimination tournament brackets"""
     context = {}
     
+    # Add available tournaments for bracket saving
+    if request.user.is_authenticated:
+        from matches.models import Tournament
+        available_tournaments = Tournament.objects.filter(status='upcoming')
+        context['available_tournaments'] = available_tournaments
+    
     if request.method == 'POST':
         if 'submit_scores' in request.POST:
             # Handle score submission

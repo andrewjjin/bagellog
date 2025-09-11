@@ -292,7 +292,7 @@
         }
         
         .team-score-row .score-input {
-            width: 60px;
+            width: 80px;
             margin: 0;
             text-align: center;
             font-weight: 600;
@@ -539,5 +539,56 @@
             </div>
             {% endif %}
         </div>
+        
+        {% if bracket_data and user.is_authenticated and available_tournaments %}
+        <div class="form-section">
+            <h3>💾 Save Bracket to Tournament</h3>
+            <p>Save your bracket to participate in a tournament:</p>
+            
+            <form method="post" action="{% url 'save_bracket' 0 %}" id="save-bracket-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="tournament_select">Select Tournament:</label>
+                    <select id="tournament_select" name="tournament_id" class="form-control" required>
+                        <option value="">Choose a tournament...</option>
+                        {% for tournament in available_tournaments %}
+                        <option value="{{ tournament.id }}">{{ tournament.name }} ({{ tournament.start_date|date:"M d, Y" }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="bracket_name">Bracket Name:</label>
+                    <input type="text" id="bracket_name" name="bracket_name" value="My Bracket" class="form-control">
+                </div>
+                
+                <button type="submit" class="submit-btn">Save Bracket</button>
+            </form>
+        </div>
+        {% elif bracket_data and user.is_authenticated %}
+        <div class="form-section">
+            <h3>💾 Save Bracket</h3>
+            <p>No upcoming tournaments available for bracket saving.</p>
+            <a href="{% url 'tournament_list' %}" class="submit-btn">View Tournaments</a>
+        </div>
+        {% elif bracket_data and not user.is_authenticated %}
+        <div class="form-section">
+            <h3>💾 Save Bracket</h3>
+            <p>Please <a href="/admin/login/">login</a> to save your bracket to a tournament.</p>
+        </div>
         {% endif %}
-{% endblock %} 
+        
+        {% endif %}
+{% endblock %}
+
+<script>
+document.getElementById('save-bracket-form').addEventListener('submit', function(e) {
+    const tournamentId = document.getElementById('tournament_select').value;
+    if (tournamentId) {
+        this.action = this.action.replace('0', tournamentId);
+    } else {
+        e.preventDefault();
+        alert('Please select a tournament.');
+    }
+});
+</script> 
